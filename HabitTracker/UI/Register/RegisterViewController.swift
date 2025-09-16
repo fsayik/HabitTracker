@@ -7,75 +7,70 @@
 
 import UIKit
 
-final class RegisterViewController: UIViewController {
+protocol RegisterVCProtokol: AnyObject {
+    
+    func setupUI()
+    func checkRegistered()
+    func showAlert() 
+}
+
+final class RegisterViewController: UIViewController, RegisterVCProtokol{
     
     // MARK: - Variable
     
+    private var viewModel = RegisterViewModel()
+    
     // MARK: - UI Components
-    // Email or username input field
-    private let emailTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Email or Username"
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.borderStyle = .roundedRect
-        textField.applyCornerRadius(AppSpacing.CornerRadius.medium)
-        return textField
-    }()
     
-    // Password input field
-    private let passwordTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Password"
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.borderStyle = .roundedRect
-        textField.applyCornerRadius(AppSpacing.CornerRadius.medium)
-        textField.isSecureTextEntry = true
-        return textField
-    }()
+    private let registerView = RegisterView()
     
-    // Login button
-    private let loginButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Create", for: .normal)
-        button.layer.cornerRadius = 5
-        button.backgroundColor = .primaryPurple
-        button.tintColor = .white
-        button.applyCornerRadius(AppSpacing.CornerRadius.medium)
-        return button
-    }()
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemRed
-        setupUI()
+        viewModel.view = self
+        viewModel.viewDidLoad()
+    }
+    
+    func checkRegistered() {
+        if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
+            sceneDelegate.checkAuthentication()
+        }
+    }
+    @objc func register() {
+        if registerView.passwordTextField.text == registerView.confirmPasswordTextField.text {
+            viewModel.register(username: registerView.nameTextField.text ?? "",
+                               email: registerView.emailTextField.text ?? "",
+                               password: registerView.passwordTextField.text ?? "")
+        }else {
+            AlertManager.showInvalidPasswordAlert(on: self)
+        }
+        
+    }
+    
+    func showAlert() {
+        AlertManager.showInvalidEmailAlert(on: self)
     }
     
     
     // MARK: - UI Setup
-    private func setupUI() {
+    func setupUI() {
         view.backgroundColor = .backgroundGradientMiddle
         
-        // Add subviews
-        view.addSubViews(emailTextField, passwordTextField, loginButton)
+        view.backgroundColor = .backgroundGradientMiddle
+        registerView.signInButton.addTarget(self, action: #selector(register), for: .touchUpInside)
         
+        
+        view.addSubview(registerView)
+        registerView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            emailTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emailTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
-            emailTextField.widthAnchor.constraint(equalToConstant: 200),
-            emailTextField.heightAnchor.constraint(equalToConstant: 40),
-            
-            passwordTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 20),
-            passwordTextField.widthAnchor.constraint(equalToConstant: 200),
-            passwordTextField.heightAnchor.constraint(equalToConstant: 40),
-            
-            loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
-            loginButton.widthAnchor.constraint(equalToConstant: 200),
-            loginButton.heightAnchor.constraint(equalToConstant: 40)
+            registerView.topAnchor.constraint(equalTo: view.topAnchor),
+            registerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            registerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            registerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
+        
     }
-    
+        
 }
