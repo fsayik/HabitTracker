@@ -40,7 +40,7 @@ struct AppSpacing {
         // Header spacing
         static let headerPadding: CGFloat = 16
         static let headerVerticalPadding: CGFloat = 24
-        static let headerElementSpacing: CGFloat = 8
+        static let headerElementSpacing: CGFloat = 5
         
         // Stats grid spacing
         static let statsGridSpacing: CGFloat = 12

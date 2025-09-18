@@ -12,18 +12,24 @@ protocol HomeVMProtokol {
     
     func viewDidLoad()
     func singout()
+    func addHabit()
     
 }
 
 final class HomeViewModel: HomeVMProtokol{
+   
+    
 
     // MARK: - Variable
     weak var view: HomeVCProtokol?
     
     // MARK: - Functions
     func viewDidLoad() {
-        view?.setupUI()
+        view?.setupScrollView()
+        view?.headerView()
         view?.setupCollectionView()
+        view?.setupAddHabitButton()
+        view?.setupUI()
     }
     
     func singout() {
@@ -36,6 +42,10 @@ final class HomeViewModel: HomeVMProtokol{
             
             view?.checkLogout()
         }
+    }
+    
+    func addHabit() {
+        print("adddd")
     }
     
 }

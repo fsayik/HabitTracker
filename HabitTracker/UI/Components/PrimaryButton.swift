@@ -32,10 +32,9 @@ class PrimaryButton: UIButton {
     
     private func setGradient() {
         let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [UIColor.primaryPink, UIColor.primaryPurple]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        gradientLayer.cornerRadius = AppSpacing.CornerRadius.medium
+        gradientLayer.colors = [UIColor.Button.primaryStart.cgColor, UIColor.Button.primaryEnd.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 0)
         layer.insertSublayer(gradientLayer, at: 0)
     }
     

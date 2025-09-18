@@ -136,4 +136,39 @@ extension UIColor {
         static let shadow = UIColor.black.withAlphaComponent(0.1)
         static let border = UIColor.clear
     }
+    
+    // MARK: - Helper Methods
+        static func createGradient(from startColor: UIColor, to endColor: UIColor) -> CAGradientLayer {
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+            gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+            gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+            return gradientLayer
+        }
+        
+        static func backgroundGradient() -> CAGradientLayer {
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.colors = [
+                UIColor.backgroundGradientStart.cgColor,
+                UIColor.backgroundGradientMiddle.cgColor,
+                UIColor.backgroundGradientEnd.cgColor
+            ]
+            gradientLayer.locations = [0.0, 0.5, 1.0]
+            gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+            gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+            return gradientLayer
+        }
+        
+        static func headerGradient() -> CAGradientLayer {
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.colors = [
+                UIColor.headerPurple.cgColor,
+                UIColor.headerPink.cgColor,
+                UIColor.headerBlue.cgColor
+            ]
+            gradientLayer.locations = [0.0, 0.5, 1.0]
+            gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+            gradientLayer.endPoint = CGPoint(x: 1, y: 0)
+            return gradientLayer
+        }
 }

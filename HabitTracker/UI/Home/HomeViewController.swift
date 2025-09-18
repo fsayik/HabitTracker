@@ -11,27 +11,68 @@ protocol HomeVCProtokol: AnyObject {
     func setupUI()
     func checkLogout()
     func setupCollectionView()
+    func headerView()
+    func setupScrollView()
+    func reloadCollectionView()
+    func setupAddHabitButton()
 }
 
 final class HomeViewController: UIViewController, HomeVCProtokol{
-    // MARK: - Variable
-    private var viewModel = HomeViewModel()
     
-    private var mockHabits: [Habit] = [
-        Habit(title: "Drink 8 glasses of water", category: "Health", categoryColor: .systemGreen, fireCount: 5, likeCount: 7, isCompleted: false),
-        Habit(title: "Exercise for 30 minutes", category: "Fitness", categoryColor: .systemOrange, fireCount: 12, likeCount: 5, isCompleted: true),
-        Habit(title: "Read for 20 minutes", category: "Learning", categoryColor: .systemBlue, fireCount: 8, likeCount: 6, isCompleted: false),
-        Habit(title: "Meditate for 10 minutes", category: "Mindfulness", categoryColor: .systemPurple, fireCount: 3, likeCount: 6, isCompleted: true)
+    // MARK: - Variable
+    
+    private var mockHabits: [HabitFirebase] = [
+        HabitFirebase(name: "Drink 8 glasses of water", streak: 5, target: 7, completed: false, category: "Health"),
+        HabitFirebase(name: "Exercise for 30 minutes", streak: 12, target: 5, completed: true, category: "Fitness"),
+        HabitFirebase(name: "Read for 20 minutes", streak: 8, target: 6, completed: false, category: "Learning"),
+        HabitFirebase(name: "Meditate for 10 minutes", streak: 3, target: 6, completed: true, category: "Mindfulness"),
+        
+            HabitFirebase(name: "Drink 8 glasses of water", streak: 5, target: 7, completed: false, category: "Health"),
+            HabitFirebase(name: "Exercise for 30 minutes", streak: 12, target: 5, completed: true, category: "Fitness"),
+            HabitFirebase(name: "Read for 20 minutes", streak: 8, target: 6, completed: false, category: "Learning"),
+            HabitFirebase(name: "Meditate for 10 minutes", streak: 3, target: 6, completed: true, category: "Mindfulness"),
+        
+            HabitFirebase(name: "Drink 8 glasses of water", streak: 5, target: 7, completed: false, category: "Health"),
+            HabitFirebase(name: "Exercise for 30 minutes", streak: 12, target: 5, completed: true, category: "Fitness"),
+            HabitFirebase(name: "Read for 20 minutes", streak: 8, target: 6, completed: false, category: "Learning"),
+            HabitFirebase(name: "Meditate for 10 minutes", streak: 3, target: 6, completed: true, category: "Mindfulness"),
     ]
     
+    private var viewModel = HomeViewModel()
+    
     // MARK: - UI Components
-    private let logoutButton: UIButton = {
-        let buton = UIButton()
-        buton.translatesAutoresizingMaskIntoConstraints = false
-        buton.backgroundColor = .systemRed
-        return buton
+    private let contentView = UIView()
+    private let scrollView: UIScrollView = {
+        let view = UIScrollView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
-    private var collectionView: UICollectionView!
+    
+    private let contentStackView: UIStackView = {
+        let view = UIStackView()
+        view.axis = .vertical
+        view.spacing = AppSpacing.Margin.section
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private var topView: AppHeaderView!
+    private var addHabitButton: AddButton!
+    
+    
+    private var collectionView: UICollectionView = {
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.scrollDirection = .vertical
+        flowLayout.minimumLineSpacing = AppSpacing.Margin.element
+        flowLayout.minimumInteritemSpacing = 0
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+        collectionView.backgroundColor = .clear
+        collectionView.register(HabitCell.self, forCellWithReuseIdentifier: HabitCell.identifier)
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+        
+    }()
         
     
     // MARK: - LifeCycle
@@ -43,45 +84,106 @@ final class HomeViewController: UIViewController, HomeVCProtokol{
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
     // MARK: - UI Setup
   
+    func reloadCollectionView() {
+        DispatchQueue.main.async { [weak self] in
+            self?.collectionView.reloadData()
+            
+        }
+    }
+    
     func setupUI() {
-        view.addSubViews(logoutButton)
-        
-        logoutButton.addTarget(self, action: #selector(logut), for: .touchDown)
+        view.backgroundColor = .backgroundGradientEnd
         
         NSLayoutConstraint.activate([
-            logoutButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoutButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            logoutButton.heightAnchor.constraint(equalToConstant: 50),
-            logoutButton.widthAnchor.constraint(equalToConstant: 200),
+            // Header constraints
+            topView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topView.heightAnchor.constraint(equalToConstant: 120),
+            
+            // Scroll view constraints
+            scrollView.topAnchor.constraint(equalTo: topView.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            
+            // Content view constraints
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            contentView.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
+            
+            // Content stack view constraints
+            contentStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: AppSpacing.Margin.section),
+            contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: AppSpacing.Margin.screen),
+            contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -AppSpacing.Margin.screen),
+            contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -AppSpacing.Margin.section),
+            
+            
+            collectionView.topAnchor.constraint(equalTo: contentStackView.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: contentStackView.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: contentStackView.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: contentStackView.bottomAnchor, constant: -50),
+            
+            addHabitButton.heightAnchor.constraint(equalToConstant: 50)
             
         ])
     }
-    func setupCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 12
+    
+    func setupAddHabitButton() {
+        addHabitButton = AddButton(title: "Add New Habit", icon: "✨")
+        addHabitButton.translatesAutoresizingMaskIntoConstraints = false
+        addHabitButton.addTarget(self, action: #selector(addHabit), for: .touchUpInside)
+        contentStackView.addArrangedSubview(addHabitButton)
+       
+    }
+    
+    func setupScrollView() {
         
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .clear
-        collectionView.register(HabitCell.self, forCellWithReuseIdentifier: HabitCell.identifier)
+        view.addSubview(scrollView)
+        
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
+        contentView.addSubview(contentStackView)
+        contentStackView.addArrangedSubview(collectionView)
+    
+    }
+    
+    func setupCollectionView() {
         collectionView.dataSource = self
         collectionView.delegate = self
+    }
+    
+    func headerView() {
         
-        view.addSubview(collectionView)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        let dateString = formatter.string(from: Date())
+        
+        topView = AppHeaderView(title: "Daily Habits", subtitle: dateString)
+        topView.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(topView)
+        
+        topView.logoutButton.addTarget(self, action: #selector(logut), for: .touchUpInside)
         
     }
     
     @objc func logut() {
         viewModel.singout()
+    }
+    @objc func addHabit() {
+        viewModel.addHabit()
     }
     func checkLogout() {
         if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
